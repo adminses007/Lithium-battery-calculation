@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-EN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar & Lithium Battery Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #fcb69f, #fcb69f);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-size: 14px;
+        }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease;
+        }
+        .input-group input:focus, .input-group select:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+            color: #333;
+        }
+        .result p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ဆိုလာစနစ် နှင့် လစ်သီယမ်ဘက်ထရီတွက်ချက်</h1>
+        <div class="input-group">
+            <label for="voltage">ဘက်ထရီဗို့အား (V):</label>
+            <input type="number" id="voltage" placeholder="">
+        </div>
+        <div class="input-group">
+            <label for="capacity">ဘက်ထရီပမာဏ (Ah):</label>
+            <input type="number" id="capacity" placeholder="">
+        </div>
+        <div class="input-group">
+            <label for="solarInput">အားသွင်းပါ၀ါ (W & A):</label>
+            <input type="number" id="solarInput" placeholder="">
+            <select id="solarUnit">
+                <option value="W">ဆိုလာစနစ် (W)</option>
+                <option value="A">EPC (A)</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label for="efficiency">အားသွင်းထိရောက်မှု (%):</label>
+            <input type="number" id="efficiency" placeholder="" value="">
+        </div>
+        <div class="input-group">
+            <label for="dischargeEfficiency">အသုံးပြုနှုန်းထိရောက်မှု (%):</label>
+            <input type="number" id="dischargeEfficiency" placeholder="" value="">
+        </div>
+        <div class="input-group">
+            <label for="usage">ပါဝါအသုံးပြုမှု (W):</label>
+            <input type="number" id="usage" placeholder="">
+        </div>
+        <button onclick="calculate()">တွက်ချက်မည်</button>
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        function clearInputOnFocus(inputId) {
+            const input = document.getElementById(inputId);
+            input.addEventListener('focus', function () {
+                this.value = '';
+            });
+        }
+
+        clearInputOnFocus('voltage');
+        clearInputOnFocus('capacity');
+        clearInputOnFocus('solarInput');
+        clearInputOnFocus('efficiency');
+        clearInputOnFocus('dischargeEfficiency');
+        clearInputOnFocus('usage');
+
+        function calculate() {
+            const voltage = parseFloat(document.getElementById('voltage').value);
+            const capacity = parseFloat(document.getElementById('capacity').value);
+            const solarInput = parseFloat(document.getElementById('solarInput').value);
+            const solarUnit = document.getElementById('solarUnit').value;
+            const userChargeEfficiency = parseFloat(document.getElementById('efficiency').value) / 100;
+            const userDischargeEfficiency = parseFloat(document.getElementById('dischargeEfficiency').value) / 100;
+            const usage = parseFloat(document.getElementById('usage').value);
+
+            if (isNaN(voltage) || isNaN(capacity) || isNaN(solarInput) || isNaN(userChargeEfficiency) || isNaN(userDischargeEfficiency) || isNaN(usage)) {
+                document.getElementById('result').innerText = "မှန်ကန်သောတန်ဖိုးကို ထည့်ပါ။";
+                return;
+            }
+
+            let chargeEfficiency = userChargeEfficiency || 0.90;
+            let dischargeEfficiency = userDischargeEfficiency || 0.90;
+
+            const totalEnergy = voltage * capacity;
+
+            let solarPower = solarInput;
+            if (solarUnit === "A") {
+                solarPower = solarInput * voltage;
+            }
+
+            const chargeTime = totalEnergy / (solarPower * chargeEfficiency);
+
+            const supportTime = (totalEnergy * dischargeEfficiency) / usage;
+
+            document.getElementById('result').innerHTML = `
+                <p>ဘက်ထရီအမျိုးအစား: Lithium battery</p>
+                <p>အားသွင်းထိရောက်မှုနှုန်း: ${(chargeEfficiency * 100).toFixed(2)}%</p>
+                <p>အသုံးပြုထိရောက်မှုနှုန်း: ${(dischargeEfficiency * 100).toFixed(2)}%</p>
+                <p>အားအပြည့်သွင်းရန်: ${chargeTime.toFixed(2)} နာရီလိုအပ်ပါသည်</p>
+                <p>ပါ၀ါ ${usage}W အသုံးပြုမှုကို，ဘက်ထရီ: ${supportTime.toFixed(2)} နာရီထောက်ပံ့ပေးနိုင်ပါသည်</p>
+            `;
+        }
+    </script>
+</body>
+</html>
